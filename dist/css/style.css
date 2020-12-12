@@ -1,0 +1,221 @@
+
+
+.card-body {
+    line-height: 0.5em;
+}
+.card-title {
+    line-height: 1em;
+    margin-top: 1em;
+    font-size: 14px;
+}
+.card-text {
+    font-size: 12px;
+    padding-bottom: 15px;
+}
+.icon-star {
+    color: gold;
+    
+}
+.icon-search {
+    margin-bottom: 3px;
+}
+.icon-star-empty {
+    color: grey;
+}
+.icon-star-empty:hover{
+    color: gold;
+}
+@media all and (min-width: 992px) {
+	.navbar .nav-item .dropdown-menu{ display: none; }
+	.navbar .nav-item:hover .nav-link{ color: #000;  }
+	.navbar .nav-item:hover .dropdown-menu{ display: block; }
+	.navbar .nav-item .dropdown-menu{ margin-top:0; }
+}	
+
+
+
+
+
+
+
+
+Different Tricks on How to Make Bootstrap Columns All the Same Height
+Different Tricks on How to Make Bootstrap Columns All the Same Height
+Nicholas Cerminara
+ @whatnicktweets
+May 12, 2016
+34 Comments
+439,798 Views
+ Bookmark
+DEMO
+Bootstrap 3 (and now Bootstrap 4) are amazing CSS frameworks that can make the lives of developers of any skill-level easier. When I was more of a beginner and I first started using Bootstrap, I used every feature of it possible and used to hack it to get things to work the way I wanted. Now, with more experience, I mostly just use their reset and grid system. I now rarely alter any of its core functionality.
+
+Bootstrap's grid system is fantastic and near perfect in my opinion. You can read about it here. I often see developers needing to match heights across columns while maintaining responsiveness. I've decided to share some of the methods I do to accomplish this, as well as some very cool tricks other developers and friends have taught me, and the general direction and solution that Bootstrap 4 is doing to address this common problem.
+
+Equal Columns? The Problem.
+
+Table of Contents
+
+Equal Columns? The Problem.
+Option 1: Use JavaScript or MatchHeight.js
+Option 2: Make the row think it's a table
+Option 3: Using a Negative Margin and Huge Padding Trick
+Option 4: Use Flexbox
+Bootstrap 4 Only: Flexbox
+Bootstrap 4 Only: Cards
+More Resources
+I've made a demo CodePen to illustrate the issue when content in columns are different lengths and how it messes with design. Some quick notes first:
+
+Padding of 25px is added to the top and bottom of all Bootstrap stuff
+A subtle border wraps all .cols
+Various backgrounds are used to see how things stack on each other and how this all works
+
+
+Option 1: Use JavaScript or MatchHeight.js
+
+The first solution I'm going to use is with JavaScript. This is pretty straight forward and simply uses JavaScript to match heights of the columns. The best, easiest, and almost the most "official" JS way is to simply use matchHeight.
+
+There's definitely pros and cons to taking a JavaScript approach. With JavaScript, you get high cross-browser support, but you also have a bigger pageload and it won't happen until the DOM is ready or loaded depending on when you trigger it. I like this approach though because I actually prefer to not have heights associated with my columns and instead the content in them.
+
+Here's more info on matchHeight.js:
+
+matchHeight.js Docs
+matchHeight.js GitHub
+The quickest way to get started is just reference the CDN link like so after your jQuery:
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.matchHeight/0.7.0/jquery.matchHeight-min.js"><script>
+MatchHeight is super easy-to-use and essentially has two main options (among a bunch of other stuff):
+
+Match heights on different rows
+Match all heights
+Match heights on different rows
+
+Here's how to match heights on different rows:
+
+$(function() {
+    $('.box').matchHeight();
+});
+
+
+Match all heights
+
+Here's how to match the height of all elements on the page:
+
+$(function() {
+    $('.box').matchHeight(false);
+});
+
+
+Don't forget responsive
+
+If you take either of these approaches, make sure to disable heights on mobile since the columns are all stacked it won't matter if they're the same height of not.
+
+You can just override the fixed height at the media query breakpoint. This changes based on xs, sm, md, or lg). Here's a demo when using col-sm-*:
+
+@media only screen and (max-width : 767px) {
+    .box {
+        height: auto !important;
+    } 
+}
+Option 2: Make the row think it's a table
+
+The word "table" usually sets off a bunch of red flags with front-end developers, but it's really not that bad when used right. A lot of people don't even realize you can force div's and its elements to behave like a table element.
+
+Sometimes you want to do this because the table element's columns have matched height as default behavior. Here's a CSS utitlity class to trick rows into thinking it's a table when you're using col-sm-* followed by a demo:
+
+@media only screen and (min-width : 768px) {
+    .is-table-row {
+        display: table;
+    }
+    .is-table-row [class*="col-"] {
+        float: none;
+        display: table-cell;
+        vertical-align: top;
+    }
+}
+<div class="row is-table-row">
+    <div class="col-sm-4">...</div>
+    <div class="col-sm-4">...</div>
+    <div class="col-sm-4">...</div>
+</div>
+
+
+You'll have to adjust this a bit based on what size column you're using. So it would actually makes sense to create multiple utility classes: is-xs-table-row, is-sm-table-row, is-md-table-row, and is-lg-table-row or just manually make sure you check for responsive.
+
+You'll also notice I adjusted the styles a bit because the columns now have a height (not the custom .box element). If you take this approach, you'll have to plan for this.
+
+Option 3: Using a Negative Margin and Huge Padding Trick
+
+This approach is really, really cool and probably the best solution for most people. I have no idea who came up with it, but it is super creative and has many benefits:
+
+Works on responsive out-of-the-box with little thinking
+Little effort from the developer to make sure it works well in various scenarios
+Should work on all columns regardless of their sizing
+It also has a lot of cons though:
+
+Positioning elements absolute to the bottom is not possible (see the codepen adjusted styles on .btn). There's work-arounds for this, but it's unnatural a bit
+Required to have "row" have overflow: hidden
+Here's a utility class for it:
+
+.row.match-my-cols {
+    overflow: hidden; 
+}
+
+.row.match-my-cols [class*="col-"]{
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+}
+<div class="row match-my-cols">
+    <div class="col-sm-4">...</div>
+    <div class="col-sm-4">...</div>
+    <div class="col-sm-4">...</div>
+</div>
+
+
+How does it work?
+
+It adds 99999px of height to the column via padding and then uses the negative margin to force the position as if it is not there. Then the .row just hides anything that is overflowed.
+
+Option 4: Use Flexbox
+
+Flexbox is the CSS3 God's gift to the world of grumpy front-end developers. It's the ultimate tool for layouts and "gridding" via CSS. You can learn all about it with this Visual Guide to CSS3 Flexbox Properties.
+
+There's only one problem. Internet Explorer browser support is awful. IE9 and below provides zero support, IE10 is a crapshoot with it, and IE11 has many bugs. It's really only useful to a select few privileged developers, but know Flexbox is coming and here to stay.
+
+This method does equal heights, is super easy, is out-of-the-box responsive, and eveything you can ask for. Here's a demo:
+
+.row.is-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+.row.is-flex > [class*='col-'] {
+    display: flex;
+    flex-direction: column;
+}
+
+/*
+* And with max cross-browser enabled.
+* Nobody should ever write this by hand. 
+* Use a preprocesser with autoprefixing.
+*/
+.row.is-flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.row.is-flex > [class*='col-'] {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+}
